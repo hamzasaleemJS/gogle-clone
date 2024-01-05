@@ -1,14 +1,15 @@
 import Head from "next/head";
 import Header from "../components/Header";
-import { API_KEY, CONTEXT_KEY } from "../keys";
 import Response from "../Response";
 import { useRouter } from "next/router";
 import SearchResults from "../components/SearchResults";
 
 function Search({ results }) {
   const router = useRouter();
+  if (!results) {
+    return <p>No results found.</p>;
+  }
   console.log(results);
-  const { term } = router.query;
   return (
     <div>
       <Head>
@@ -27,19 +28,27 @@ function Search({ results }) {
 export default Search;
 
 export async function getServerSideProps(context) {
-  const useDummyData = false;
-  const startIndex = context.query.start || "0";
-  console.log("Query Term:", context.query.term);
+  try {
+    const { term } = context.query;
+    console.log("Received search term:", term);
+    const useDummyData = true;
+    const startIndex = context.query.start || "0";
 
-  const data = await fetch(
-    `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CONTEXT_KEY}&q=${context.query.term}&start=${startIndex}`
-  ).then((response) => response.json());
+    const data = useDummyData
+      ? Response
+      : await fetch(
+          `https://www.googleapis.com/customsearch/v1?key=${process.env.API_KEY}&cx=${process.env.CONTEXT_KEY}&q=${term}&start=${startIndex}`
+        ).then((response) => response.json());
 
-  //After the server rendered Pass the results to the client
-
-  return {
-    props: {
-      results: data,
-    },
-  };
+    return {
+      props: {
+        results: data,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return {
+      notFound: true,
+    };
+  }
 }
