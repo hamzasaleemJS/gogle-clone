@@ -6,9 +6,6 @@ import SearchResults from "../components/SearchResults";
 
 function Search({ results }) {
   const router = useRouter();
-  if (!results) {
-    return <p>No results found.</p>;
-  }
   console.log(results);
   return (
     <div>
@@ -30,8 +27,7 @@ export default Search;
 export async function getServerSideProps(context) {
   try {
     const { term } = context.query;
-    console.log("Received search term:", term);
-    const useDummyData = true;
+    const useDummyData = false;
     const startIndex = context.query.start || "0";
 
     const data = useDummyData
